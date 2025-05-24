@@ -21,12 +21,13 @@ class KruskalMazeGenerator:
     def __init__(self, size, add_entrance_exit=True):
         self.n = size
         self.add_entrance_exit = add_entrance_exit
-        self.maze = self._generate_maze()
+        self.maze = None
+        self.generator = self._generate_maze_step_by_step()
 
     def regenerate(self):
-        self.maze = self._generate_maze()
+        self.generator = self._generate_maze_step_by_step()
 
-    def _generate_maze(self):
+    def _generate_maze_step_by_step(self):
         n = self.n
         total_cells = n * n
         ds = self.DisjointSet(total_cells)
@@ -47,6 +48,7 @@ class KruskalMazeGenerator:
         for row in range(n):
             for col in range(n):
                 maze[2 * row + 1][2 * col + 1] = 0
+                yield [r[:] for r in maze]
 
         for cell1, cell2 in edges:
             if ds.union(cell1, cell2):
@@ -55,16 +57,15 @@ class KruskalMazeGenerator:
                 wall_r = r1 + r2 + 1
                 wall_c = c1 + c2 + 1
                 maze[wall_r][wall_c] = 0
+                yield [r[:] for r in maze]
 
         if self.add_entrance_exit:
             maze[1][0] = 0
+            yield [r[:] for r in maze]
             maze[2 * n - 1][2 * n] = 0
+            yield [r[:] for r in maze]
 
-        return maze
+        self.maze = maze
 
     def get_maze(self):
         return self.maze
-
-    def print_maze(self):
-        for row in self.maze:
-            print("".join("[]" if cell else "  " for cell in row))
